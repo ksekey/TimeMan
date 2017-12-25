@@ -12,11 +12,11 @@ import com.ksekey.timeman.models.Token;
 /**
  * класс для загрузки и хранения токена
  */
-public class LoginHelper {
+public class TokenHelper {
 
     private Context context;
 
-    public LoginHelper(Context context) {
+    public TokenHelper(Context context) {
         this.context = context;
     }
 

@@ -13,8 +13,8 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LoginHelper loginHelper = new LoginHelper(this);
-        if (loginHelper.loadToken() == null) {
+        TokenHelper tokenHelper = new TokenHelper(this);
+        if (tokenHelper.loadToken() == null) {
             //запускаем экран авторизации
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
