@@ -1,4 +1,5 @@
 package com.ksekey.timeman.network;
+import com.ksekey.timeman.models.TimeEntry;
 import com.ksekey.timeman.models.Token;
 
 import java.util.List;
@@ -22,4 +23,7 @@ public interface TimeManApi {
                       @Field(value = "grant_type") String grantType,
                       @Field(value = "username") String username,
                       @Field(value = "password") String password);
+
+    @GET("app/rest/v2/entities/ts$TimeEntry?view=timeEntry-full&sort=-date")
+    Call<List<TimeEntry>> listTimeEntry (@Header("Authorization") String authorization);
 }

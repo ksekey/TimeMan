@@ -7,15 +7,19 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.ksekey.timeman.R;
+import com.ksekey.timeman.models.TimeEntry;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by kk on 26/12/2017.
  */
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
-    private String[] mDataset = new String[0];
+    private List<TimeEntry> mDataset = new ArrayList<>();
 
-    public void setmDataset(String[] mDataset) {
+    public void setDataset( List<TimeEntry> mDataset) {
         this.mDataset = mDataset;
         notifyDataSetChanged();
     }
@@ -48,13 +52,13 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.mTextView.setText(mDataset[position]);
-
+        holder.mTextView.setText(mDataset.get(position).getDescription());
+        holder.mTextView.append(String.valueOf(mDataset.get(position).getTimeInMinutes()));
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return mDataset.length;
+        return mDataset.size();
     }
 }
