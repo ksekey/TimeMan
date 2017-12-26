@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.ksekey.timeman.adapters.ListAdapter;
+
 /**
  * Если авторизован, то открывает записи, иначе возвращает к экрану авторизации
  */
@@ -20,6 +22,11 @@ public class SplashActivity extends AppCompatActivity {
             startActivity(intent);
 
             //закрываем SplashActivity
+            finish();
+        } else {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+
             finish();
         }
     }

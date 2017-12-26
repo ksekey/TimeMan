@@ -31,6 +31,7 @@ public class NetworkHelper {
         api = retrofit.create(TimeManApi.class); //Создаем объект, при помощи которого будем выполнять запросы
     }
 
+    //app interface
     public TimeManApi getApi() {
         return api;
     }
