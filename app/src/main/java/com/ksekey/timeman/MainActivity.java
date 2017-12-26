@@ -9,15 +9,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import com.j256.ormlite.field.DatabaseField;
 import com.ksekey.timeman.adapters.ListAdapter;
+import com.ksekey.timeman.database.DatabaseHelper;
 import com.ksekey.timeman.models.TimeEntry;
 import com.ksekey.timeman.models.Token;
 import com.ksekey.timeman.network.NetworkHelper;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import retrofit2.Response;
@@ -62,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (loadEntryListTask == null){
+        if (loadEntryListTask == null) {
             loadEntryListTask = new LoadEntryListTask();
 
             loadEntryListTask.execute();
@@ -76,21 +80,31 @@ public class MainActivity extends AppCompatActivity {
      * Загрузка записей в фоне
      */
     public class LoadEntryListTask extends AsyncTask<Void, Void, List<TimeEntry>> {
+        private static final String TAG = "LoadEntryListTask";
 
         @Override
         protected List<TimeEntry> doInBackground(Void... params) {
-            //пробуем залогиниться
+            //пробуем получить данные с сервера
+            DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
             try {
                 TokenHelper tokenHelper = new TokenHelper(MainActivity.this);
                 Response<List<TimeEntry>> response = networkHelper.getApi().listTimeEntry("Bearer " + tokenHelper.loadToken().getAccess_token()).execute();
                 if (response.isSuccessful()) {
-                    return response.body();
+                    List<TimeEntry> timeEntries = response.body();
+                    for (int i = 0; i < timeEntries.size(); i++) {
+                        dbHelper.getTimeEntryDao().createOrUpdate(timeEntries.get(i));
+                    }
+                    return timeEntries;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException | SQLException e) {
+                Log.w(TAG, "doInBackground: ", e);
+            }
+            //если дошли до этого момента, значит что-то не так с интернетом, загружаем данные из бд
+            try {
+                return dbHelper.getTimeEntryDao().queryForAll();
+            } catch (SQLException e) {
                 return null;
             }
-            return null;
         }
 
         @Override
