@@ -24,6 +24,10 @@ public class TimeEntry {
     @DatabaseField
     private String description;
 
+    private User user;
+
+    private Task task;
+
     public String getDescription() {
         return description;
     }
@@ -54,5 +58,21 @@ public class TimeEntry {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Task getTask() {
+        return task;
+    }
+
+    public void setTask(Task task) {
+        this.task = task;
     }
 }

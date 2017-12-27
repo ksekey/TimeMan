@@ -31,12 +31,22 @@ public class MainActivity extends AppCompatActivity {
     private ListAdapter listAdapter;
     private NetworkHelper networkHelper;
     private LoadEntryListTask loadEntryListTask;
+    private FloatingActionButton addItemButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_main);
         networkHelper = NetworkHelper.getInstance();
+        addItemButton = findViewById(R.id.addItem);
+
+        addItemButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
+                startActivity(intent);
+            }
+        });
         list = findViewById(R.id.list);
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
