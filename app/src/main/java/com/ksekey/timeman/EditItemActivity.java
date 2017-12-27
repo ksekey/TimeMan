@@ -6,9 +6,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.ksekey.timeman.database.DatabaseHelper;
@@ -23,7 +26,7 @@ import java.util.List;
 import retrofit2.Response;
 
 public class EditItemActivity extends AppCompatActivity {
-    private EditText editTask;
+    private Spinner editTask;
     private EditText description;
     private NumberPicker timeInMinutes;
     private Button saveButton;
@@ -31,6 +34,8 @@ public class EditItemActivity extends AppCompatActivity {
     private NetworkHelper networkHelper;
     private SaveTimeEntryOnServerTask saveTimeEntryOnServerTask;
     private LoadTasksListfromServerTask loadTaskfromServerTask;
+
+    ArrayAdapter<Task> adapter;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -42,11 +47,34 @@ public class EditItemActivity extends AppCompatActivity {
         timeInMinutes = findViewById(R.id.time_in_minutes);
         saveButton = findViewById(R.id.save_button);
 
+        // адаптер
+        adapter = new ArrayAdapter<Task>(this, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        saveButton.setOnClickListener(new View.OnClickListener() {
+        Spinner spinner = (Spinner) findViewById(R.id.edit_task);
+        spinner.setAdapter(adapter);
+        // заголовок
+        spinner.setPrompt("Select task");
+
+        // устанавливаем обработчик нажатия
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                // показываем позиция нажатого элемента
+                Toast.makeText(getBaseContext(), "Position = " + position, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+        saveButton.setOnClickListener(new View.OnClickListener()
+
+        {
             @Override
             public void onClick(View v) {
-                if (saveTimeEntryOnServerTask == null){
+                if (saveTimeEntryOnServerTask == null) {
                     TimeEntry timeEntry = new TimeEntry();
                     String db_description = description.getText().toString();
                     timeEntry.setDescription(db_description);
@@ -103,7 +131,7 @@ public class EditItemActivity extends AppCompatActivity {
             saveTimeEntryOnServerTask = null;
             if (timeEntry != null) {
                 finish();
-            }else {
+            } else {
                 Toast.makeText(EditItemActivity.this, "Произошла ошибка!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -146,8 +174,9 @@ public class EditItemActivity extends AppCompatActivity {
         protected void onPostExecute(List<Task> taskList) {
             loadTaskfromServerTask = null;
             if (taskList != null) {
-                Toast.makeText(EditItemActivity.this, "Список задач загружен", Toast.LENGTH_SHORT).show();
-            }else {
+                adapter.clear();
+                adapter.addAll(taskList);
+            } else {
                 Toast.makeText(EditItemActivity.this, "Произошла ошибка!", Toast.LENGTH_SHORT).show();
             }
         }

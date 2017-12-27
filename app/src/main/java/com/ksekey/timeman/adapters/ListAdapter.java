@@ -29,10 +29,15 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     // you provide access to all the views for a data item in a view holder
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // each data item is just a string in this case
-        public TextView mTextView;
+        public TextView taskName;
+        public TextView description;
+        public TextView timeInMinutes;
+
         public ViewHolder(View v) {
             super(v);
-            mTextView = v.findViewById(R.id.task);
+            taskName = v.findViewById(R.id.task_name);
+            timeInMinutes = v.findViewById(R.id.time_in_minutes);
+            description = v.findViewById(R.id.description);
         }
     }
 
@@ -52,8 +57,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        holder.mTextView.setText(mDataset.get(position).getDescription());
-        holder.mTextView.append(String.valueOf(mDataset.get(position).getTimeInMinutes()));
+        holder.description.setText(mDataset.get(position).getDescription());
+        holder.timeInMinutes.setText(String.valueOf(mDataset.get(position).getTimeInMinutes()));
     }
 
     // Return the size of your dataset (invoked by the layout manager)

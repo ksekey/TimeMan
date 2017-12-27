@@ -8,11 +8,14 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 /**
@@ -39,5 +42,10 @@ public interface TimeManApi {
     @GET("/app/rest/v2/entities/ts$Task?view=task-full")
     Call<List<Task>> takeTaskNameList (@Header("Authorization") String authorization);
 
+    @PUT("/app/rest/v2/entities/ts$TimeEntry/{id}")
+    Call<TimeEntry> editItem(@Header("Authorization") String authorization, @Path(value = "id") String id, @Body TimeEntry item);
+
+    @DELETE("/app/rest/v2/entities/ts$TimeEntry/{id}")
+    Call<TimeEntry> deleteItem(@Header("Authorization") String authorization, @Path(value = "id") String id);
 
 }
