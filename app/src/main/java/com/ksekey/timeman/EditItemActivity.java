@@ -1,5 +1,6 @@
 package com.ksekey.timeman;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
@@ -17,23 +19,30 @@ import android.widget.Toast;
 import com.ksekey.timeman.database.DatabaseHelper;
 import com.ksekey.timeman.models.Task;
 import com.ksekey.timeman.models.TimeEntry;
+import com.ksekey.timeman.models.User;
 import com.ksekey.timeman.network.NetworkHelper;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Response;
 
 public class EditItemActivity extends AppCompatActivity {
-    private Spinner editTask;
     private EditText description;
     private NumberPicker timeInMinutes;
     private Button saveButton;
+    private Button dateButton;
 
     private NetworkHelper networkHelper;
     private SaveTimeEntryOnServerTask saveTimeEntryOnServerTask;
     private LoadTasksListfromServerTask loadTaskfromServerTask;
+
+    private Date date = new Date();
+    private int timeMin;
+    private Task task;
 
     ArrayAdapter<Task> adapter;
 
@@ -42,10 +51,19 @@ public class EditItemActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.a_edit_item);
         networkHelper = NetworkHelper.getInstance();
-        editTask = findViewById(R.id.edit_task);
         description = findViewById(R.id.edit_description);
         timeInMinutes = findViewById(R.id.time_in_minutes);
+        timeInMinutes.setMinValue(0);
+        timeInMinutes.setMaxValue(60);
+        timeInMinutes.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                timeMin = newVal;
+            }
+        });
+
         saveButton = findViewById(R.id.save_button);
+        dateButton = findViewById(R.id.date_button);
 
         // адаптер
         adapter = new ArrayAdapter<Task>(this, android.R.layout.simple_spinner_item);
@@ -62,7 +80,7 @@ public class EditItemActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view,
                                        int position, long id) {
                 // показываем позиция нажатого элемента
-                Toast.makeText(getBaseContext(), "Position = " + position, Toast.LENGTH_SHORT).show();
+                task = adapter.getItem(position);
             }
 
             @Override
@@ -80,11 +98,43 @@ public class EditItemActivity extends AppCompatActivity {
                     timeEntry.setDescription(db_description);
                     Integer db_timeInMinutes = timeInMinutes.getValue();
                     timeEntry.setTimeInMinutes(db_timeInMinutes);
+                    timeEntry.setDate(date);
+                    timeEntry.setTask(task);
                     saveTimeEntryOnServerTask = new SaveTimeEntryOnServerTask(timeEntry);
                     saveTimeEntryOnServerTask.execute();
                 }
             }
         });
+
+        dateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(date);
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH);
+                int dayOfMounth = calendar.get(Calendar.DAY_OF_MONTH);
+                new DatePickerDialog(EditItemActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTime(date);
+                        calendar.set(year, month, dayOfMonth);
+                        date = calendar.getTime();
+                        refreshDateButton();
+                    }
+                }, year, month, dayOfMounth).show();
+            }
+        });
+    }
+
+    private void refreshDateButton() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH) + 1;
+        int dayOfMounth = calendar.get(Calendar.DAY_OF_MONTH);
+        dateButton.setText(dayOfMounth + "." + month + "." + year);
     }
 
     @Override
@@ -113,11 +163,16 @@ public class EditItemActivity extends AppCompatActivity {
             DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
             try {
                 TokenHelper tokenHelper = new TokenHelper(EditItemActivity.this);
-                Response<TimeEntry> response = networkHelper.getApi().createItem("Bearer " + tokenHelper.loadToken().getAccess_token(), timeEntry).execute();
-                if (response.isSuccessful()) {
-                    TimeEntry timeEntry = response.body();
-                    dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
-                    return timeEntry;
+                Response<User> userResponse = networkHelper.getApi().takeIdUser("Bearer " + tokenHelper.loadToken().getAccess_token()).execute();
+                if (userResponse.isSuccessful()) {
+                    User user = userResponse.body();
+                    timeEntry.setUser(user);
+                    Response<TimeEntry> response = networkHelper.getApi().createItem("Bearer " + tokenHelper.loadToken().getAccess_token(), timeEntry).execute();
+                    if (response.isSuccessful()) {
+                        TimeEntry timeEntry = response.body();
+                        dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
+                        return timeEntry;
+                    }
                 }
             } catch (IOException | SQLException e) {
                 Log.w(TAG, "doInBackground: ", e);

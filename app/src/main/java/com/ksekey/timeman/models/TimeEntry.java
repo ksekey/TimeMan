@@ -2,8 +2,11 @@ package com.ksekey.timeman.models;
 
 import android.content.Intent;
 
+import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
+import java.util.Date;
 
 /**
  * Created by kk on 26/12/2017.
@@ -15,8 +18,8 @@ public class TimeEntry {
     @DatabaseField (id = true)
     private String id;
 
-    @DatabaseField
-    private String date;
+    @DatabaseField( dataType = DataType.DATE_STRING, format = "yyyy-MM-dd")
+    private Date date;
 
     @DatabaseField
     private int timeInMinutes;
@@ -52,11 +55,11 @@ public class TimeEntry {
         this.id = id;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
