@@ -33,6 +33,8 @@ import retrofit2.Response;
 public class EditItemActivity extends AppCompatActivity {
     private EditText description;
     private NumberPicker timeInMinutes;
+    private NumberPicker timeInHours;
+
     private Button saveButton;
     private Button dateButton;
 
@@ -42,6 +44,8 @@ public class EditItemActivity extends AppCompatActivity {
 
     private Date date = new Date();
     private int timeMin;
+    private int timeHour;
+
     private Task task;
 
     ArrayAdapter<Task> adapter;
@@ -55,10 +59,22 @@ public class EditItemActivity extends AppCompatActivity {
         timeInMinutes = findViewById(R.id.time_in_minutes);
         timeInMinutes.setMinValue(0);
         timeInMinutes.setMaxValue(60);
+
+        timeInHours = findViewById(R.id.time_in_hours);
+        timeInHours.setMinValue(0);
+        timeInHours.setMaxValue(24);
+
         timeInMinutes.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
                 timeMin = newVal;
+            }
+        });
+
+        timeInHours.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+                timeHour = newVal;
             }
         });
 
@@ -96,8 +112,7 @@ public class EditItemActivity extends AppCompatActivity {
                     TimeEntry timeEntry = new TimeEntry();
                     String db_description = description.getText().toString();
                     timeEntry.setDescription(db_description);
-                    Integer db_timeInMinutes = timeInMinutes.getValue();
-                    timeEntry.setTimeInMinutes(db_timeInMinutes);
+                    timeEntry.setTimeInMinutes(timeHour * 60 + timeMin);
                     timeEntry.setDate(date);
                     timeEntry.setTask(task);
                     saveTimeEntryOnServerTask = new SaveTimeEntryOnServerTask(timeEntry);

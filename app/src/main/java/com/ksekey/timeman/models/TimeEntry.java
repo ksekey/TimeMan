@@ -27,8 +27,10 @@ public class TimeEntry {
     @DatabaseField
     private String description;
 
+    @DatabaseField(foreign = true, canBeNull = false, foreignAutoRefresh = true)
     private User user;
 
+    @DatabaseField(foreign = true, canBeNull = false, foreignAutoRefresh = true)
     private Task task;
 
     public String getDescription() {

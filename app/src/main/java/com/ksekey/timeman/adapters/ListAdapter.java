@@ -57,6 +57,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
+        holder.taskName.setText(mDataset.get(position).getTask().getName());
         holder.description.setText(mDataset.get(position).getDescription());
         holder.timeInMinutes.setText(String.valueOf(mDataset.get(position).getTimeInMinutes()));
     }
