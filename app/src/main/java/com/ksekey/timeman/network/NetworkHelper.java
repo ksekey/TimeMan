@@ -29,7 +29,7 @@ public class NetworkHelper {
     private NetworkHelper() {
         Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.103:8080/") //Базовая часть адреса
+                .baseUrl("http://192.168.0.101:8080/") //Базовая часть адреса
                 .addConverterFactory(GsonConverterFactory.create(gson)) //Конвертер, необходимый для преобразования JSON'а в объекты
                 .build();
         api = retrofit.create(TimeManApi.class); //Создаем объект, при помощи которого будем выполнять запросы

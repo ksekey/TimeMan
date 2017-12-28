@@ -46,6 +46,6 @@ public interface TimeManApi {
     Call<TimeEntry> editItem(@Header("Authorization") String authorization, @Path(value = "id") String id, @Body TimeEntry item);
 
     @DELETE("/app/rest/v2/entities/ts$TimeEntry/{id}")
-    Call<TimeEntry> deleteItem(@Header("Authorization") String authorization, @Path(value = "id") String id);
+    Call<Void> deleteItem(@Header("Authorization") String authorization, @Path(value = "id") String id);
 
 }

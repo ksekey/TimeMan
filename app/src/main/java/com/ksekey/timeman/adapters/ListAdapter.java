@@ -9,7 +9,9 @@ import android.widget.TextView;
 import com.ksekey.timeman.R;
 import com.ksekey.timeman.models.TimeEntry;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -19,6 +21,7 @@ import java.util.List;
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private List<TimeEntry> mDataset = new ArrayList<>();
     private OnClickItem onClickItem;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
     public void setDataset( List<TimeEntry> mDataset) {
         this.mDataset = mDataset;
@@ -37,12 +40,16 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         public TextView taskName;
         public TextView description;
         public TextView timeInMinutes;
+        public TextView date;
+        public TextView numWeek;
 
         public ViewHolder(View v) {
             super(v);
             taskName = v.findViewById(R.id.task_name);
             timeInMinutes = v.findViewById(R.id.time_in_minutes);
             description = v.findViewById(R.id.description);
+            date = v.findViewById(R.id.date);
+            numWeek=v.findViewById(R.id.number_of_week);
         }
     }
 
@@ -65,12 +72,19 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         holder.taskName.setText(mDataset.get(position).getTask().getName());
         holder.description.setText(mDataset.get(position).getDescription());
         holder.timeInMinutes.setText(String.valueOf(mDataset.get(position).getTimeInMinutes()));
+        holder.timeInMinutes.append(" min");
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onClickItem.onClick(mDataset.get(position));
             }
         });
+        holder.date.setText(dateFormat.format(mDataset.get(position).getDate()));
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(mDataset.get(position).getDate());
+        int week = calendar.get(Calendar.WEEK_OF_YEAR);
+        holder.numWeek.setText(String.valueOf(week));
     }
 
     // Return the size of your dataset (invoked by the layout manager)

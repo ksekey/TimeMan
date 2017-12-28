@@ -37,10 +37,12 @@ public class EditItemActivity extends AppCompatActivity {
     private Spinner spinner;
     private Button saveButton;
     private Button dateButton;
+    private Button deleteButton;
 
     private NetworkHelper networkHelper;
     private SaveTimeEntryOnServerTask saveTimeEntryOnServerTask;
     private LoadTasksListfromServerTask loadTaskfromServerTask;
+    private DeleteTEFromServerTask deleteTEFromServerTask;
 
     private Date date = new Date();
     private int timeMin;
@@ -82,6 +84,7 @@ public class EditItemActivity extends AppCompatActivity {
 
         saveButton = findViewById(R.id.save_button);
         dateButton = findViewById(R.id.date_button);
+        deleteButton = findViewById(R.id.delete_button);
 
         // адаптер
         adapter = new ArrayAdapter<Task>(this, android.R.layout.simple_spinner_item);
@@ -144,12 +147,24 @@ public class EditItemActivity extends AppCompatActivity {
             }
         });
 
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (deleteTEFromServerTask == null) {
+                    deleteTEFromServerTask = new DeleteTEFromServerTask();
+                    deleteTEFromServerTask.execute();
+                }
+            }
+        });
+
         id = getIntent().getStringExtra("id");
 
+        if (id == null) {
+            deleteButton.setVisibility(View.GONE);
+        }
 
         loadTaskfromServerTask = new LoadTasksListfromServerTask();
         loadTaskfromServerTask.execute();
-
     }
 
     private void refreshDateButton() {
@@ -161,9 +176,6 @@ public class EditItemActivity extends AppCompatActivity {
         dateButton.setText(dayOfMounth + "." + month + "." + year);
     }
 
-    /**
-     *
-     */
     public class SaveTimeEntryOnServerTask extends AsyncTask<Void, Void, TimeEntry> {
         private static final String TAG = "LoadEntryListTask";
         private final TimeEntry timeEntry;
@@ -189,7 +201,7 @@ public class EditItemActivity extends AppCompatActivity {
                             dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
                             return timeEntry;
                         }
-                    }else {
+                    } else {
                         Response<TimeEntry> response = networkHelper.getApi().editItem("Bearer " + tokenHelper.loadToken().getAccess_token(), id, timeEntry).execute();
                         if (response.isSuccessful()) {
                             TimeEntry timeEntry = response.body();
@@ -213,7 +225,7 @@ public class EditItemActivity extends AppCompatActivity {
             if (timeEntry != null) {
                 finish();
             } else {
-                Toast.makeText(EditItemActivity.this, "Произошла ошибка!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditItemActivity.this, "Произошла ошибка!\nПроверьте подключение к Интернету", Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -266,19 +278,56 @@ public class EditItemActivity extends AppCompatActivity {
                 if (timeEntry != null) {
                     description.setText(timeEntry.getDescription());
                     spinner.setSelection(adapter.getPosition(timeEntry.getTask()));
-                    timeInMinutes.setValue(timeEntry.getTimeInMinutes()%60);
-                    timeInHours.setValue(timeEntry.getTimeInMinutes()/60);
+                    timeInMinutes.setValue(timeEntry.getTimeInMinutes() % 60);
+                    timeInHours.setValue(timeEntry.getTimeInMinutes() / 60);
                     date = timeEntry.getDate();
                     refreshDateButton();
                 }
             } else {
-                Toast.makeText(EditItemActivity.this, "Произошла ошибка!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(EditItemActivity.this, "Произошла ошибка!\nПроверьте подключение к Интернету", Toast.LENGTH_SHORT).show();
             }
         }
 
         @Override
         protected void onCancelled() {
             loadTaskfromServerTask = null;
+        }
+    }
+
+    public class DeleteTEFromServerTask extends AsyncTask<Void, Void, Boolean> {
+        private static final String TAG = "DeleteTEFromServerTask";
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            //пробуем получить данные с сервера
+            DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
+            try {
+                TokenHelper tokenHelper = new TokenHelper(EditItemActivity.this);
+                Response<Void> deleteResponse = networkHelper.getApi().deleteItem("Bearer " + tokenHelper.loadToken().getAccess_token(), id).execute();
+                if (deleteResponse.isSuccessful()) {
+                    dbHelper.getTimeEntryDao().deleteById(id);
+                    return true;
+                }
+            } catch (IOException | SQLException e) {
+                Log.w(TAG, "doInBackground: ", e);
+            }
+            //если дошли до этого момента, значит что-то не так с интернетом, загружаем данные из бд
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean success) {
+            deleteTEFromServerTask = null;
+            if (!success) {
+                finish();
+            } else {
+                Toast.makeText(EditItemActivity.this, "Произошла ошибка!\nПроверьте подключение к Интернету", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            deleteTEFromServerTask = null;
         }
     }
 }
