@@ -26,7 +26,7 @@ import java.util.List;
 
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ListAdapter.OnClickItem {
     private RecyclerView list;
     private ListAdapter listAdapter;
     private NetworkHelper networkHelper;
@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         // specify an adapter (see also next example)
         listAdapter = new ListAdapter();
+        listAdapter.setOnClickItem(this);
         list.setAdapter(listAdapter);
 
         /*Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -84,6 +85,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showProgress(Boolean progress) {
+    }
+
+    @Override
+    public void onClick(TimeEntry timeEntry) {
+        Intent intent = new Intent(MainActivity.this, EditItemActivity.class);
+        intent.putExtra("id",timeEntry.getId());
+        startActivity(intent);
     }
 
     /**

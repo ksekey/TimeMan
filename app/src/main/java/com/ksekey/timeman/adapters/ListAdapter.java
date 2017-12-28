@@ -18,10 +18,15 @@ import java.util.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
     private List<TimeEntry> mDataset = new ArrayList<>();
+    private OnClickItem onClickItem;
 
     public void setDataset( List<TimeEntry> mDataset) {
         this.mDataset = mDataset;
         notifyDataSetChanged();
+    }
+
+    public void setOnClickItem(OnClickItem onClickItem) {
+        this.onClickItem = onClickItem;
     }
 
     // Provide a reference to the views for each data item
@@ -54,17 +59,27 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.taskName.setText(mDataset.get(position).getTask().getName());
         holder.description.setText(mDataset.get(position).getDescription());
         holder.timeInMinutes.setText(String.valueOf(mDataset.get(position).getTimeInMinutes()));
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onClickItem.onClick(mDataset.get(position));
+            }
+        });
     }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mDataset.size();
+    }
+
+    public interface OnClickItem{
+        void onClick(TimeEntry timeEntry);
     }
 }

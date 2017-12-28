@@ -34,7 +34,7 @@ public class EditItemActivity extends AppCompatActivity {
     private EditText description;
     private NumberPicker timeInMinutes;
     private NumberPicker timeInHours;
-
+    private Spinner spinner;
     private Button saveButton;
     private Button dateButton;
 
@@ -47,8 +47,10 @@ public class EditItemActivity extends AppCompatActivity {
     private int timeHour;
 
     private Task task;
+    private String id;
 
     ArrayAdapter<Task> adapter;
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -85,7 +87,7 @@ public class EditItemActivity extends AppCompatActivity {
         adapter = new ArrayAdapter<Task>(this, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        Spinner spinner = (Spinner) findViewById(R.id.edit_task);
+        spinner = (Spinner) findViewById(R.id.edit_task);
         spinner.setAdapter(adapter);
         // заголовок
         spinner.setPrompt("Select task");
@@ -141,6 +143,13 @@ public class EditItemActivity extends AppCompatActivity {
                 }, year, month, dayOfMounth).show();
             }
         });
+
+        id = getIntent().getStringExtra("id");
+
+
+        loadTaskfromServerTask = new LoadTasksListfromServerTask();
+        loadTaskfromServerTask.execute();
+
     }
 
     private void refreshDateButton() {
@@ -150,15 +159,6 @@ public class EditItemActivity extends AppCompatActivity {
         int month = calendar.get(Calendar.MONTH) + 1;
         int dayOfMounth = calendar.get(Calendar.DAY_OF_MONTH);
         dateButton.setText(dayOfMounth + "." + month + "." + year);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (loadTaskfromServerTask == null) {
-            loadTaskfromServerTask = new LoadTasksListfromServerTask();
-            loadTaskfromServerTask.execute();
-        }
     }
 
     /**
@@ -182,12 +182,23 @@ public class EditItemActivity extends AppCompatActivity {
                 if (userResponse.isSuccessful()) {
                     User user = userResponse.body();
                     timeEntry.setUser(user);
-                    Response<TimeEntry> response = networkHelper.getApi().createItem("Bearer " + tokenHelper.loadToken().getAccess_token(), timeEntry).execute();
-                    if (response.isSuccessful()) {
-                        TimeEntry timeEntry = response.body();
-                        dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
-                        return timeEntry;
+                    if (id == null) {
+                        Response<TimeEntry> response = networkHelper.getApi().createItem("Bearer " + tokenHelper.loadToken().getAccess_token(), timeEntry).execute();
+                        if (response.isSuccessful()) {
+                            TimeEntry timeEntry = response.body();
+                            dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
+                            return timeEntry;
+                        }
+                    }else {
+                        Response<TimeEntry> response = networkHelper.getApi().editItem("Bearer " + tokenHelper.loadToken().getAccess_token(), id, timeEntry).execute();
+                        if (response.isSuccessful()) {
+                            TimeEntry timeEntry = response.body();
+                            dbHelper.getTimeEntryDao().createOrUpdate(timeEntry);
+                            return timeEntry;
+                        }
+
                     }
+
                 }
             } catch (IOException | SQLException e) {
                 Log.w(TAG, "doInBackground: ", e);
@@ -214,12 +225,17 @@ public class EditItemActivity extends AppCompatActivity {
 
     public class LoadTasksListfromServerTask extends AsyncTask<Void, Void, List<Task>> {
         private static final String TAG = "LoadTaskfromServerTask";
+        private TimeEntry timeEntry;
 
         @Override
         protected List<Task> doInBackground(Void... params) {
             //пробуем получить данные с сервера
             DatabaseHelper dbHelper = new DatabaseHelper(getApplicationContext());
             try {
+                if (id != null) {
+                    timeEntry = dbHelper.getTimeEntryDao().queryForId(id);
+                }
+
                 TokenHelper tokenHelper = new TokenHelper(EditItemActivity.this);
                 Response<List<Task>> response = networkHelper.getApi().takeTaskNameList("Bearer " + tokenHelper.loadToken().getAccess_token()).execute();
                 if (response.isSuccessful()) {
@@ -246,6 +262,15 @@ public class EditItemActivity extends AppCompatActivity {
             if (taskList != null) {
                 adapter.clear();
                 adapter.addAll(taskList);
+
+                if (timeEntry != null) {
+                    description.setText(timeEntry.getDescription());
+                    spinner.setSelection(adapter.getPosition(timeEntry.getTask()));
+                    timeInMinutes.setValue(timeEntry.getTimeInMinutes()%60);
+                    timeInHours.setValue(timeEntry.getTimeInMinutes()/60);
+                    date = timeEntry.getDate();
+                    refreshDateButton();
+                }
             } else {
                 Toast.makeText(EditItemActivity.this, "Произошла ошибка!", Toast.LENGTH_SHORT).show();
             }
